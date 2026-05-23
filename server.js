@@ -9,6 +9,7 @@ const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
 
 const app = express();
+app.set('trust proxy', 1); // Trust Render's proxy for secure session cookies
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '44.10.Malatya'; // Default admin password
 const CONFIG_FILE = path.join(__dirname, 'data', 'config.json');
