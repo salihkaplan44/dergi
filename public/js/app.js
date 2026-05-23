@@ -793,20 +793,18 @@ document.addEventListener('DOMContentLoaded', () => {
       container.scrollTop = scrollTopStart - walkY;
     }, { passive: true });
 
-    // Scroll Wheel Zoom Support (Ctrl + Scroll Wheel)
+    // Scroll Wheel Zoom Support (Direct Scroll Wheel Zoom)
     container.addEventListener('wheel', (e) => {
-      if (e.ctrlKey) {
-        e.preventDefault();
-        if (e.deltaY < 0) {
-          if (zoomLevel < 250) {
-            zoomLevel += 25;
-            updateZoom();
-          }
-        } else {
-          if (zoomLevel > 100) {
-            zoomLevel -= 25;
-            updateZoom();
-          }
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        if (zoomLevel < 250) {
+          zoomLevel += 25;
+          updateZoom();
+        }
+      } else {
+        if (zoomLevel > 100) {
+          zoomLevel -= 25;
+          updateZoom();
         }
       }
     }, { passive: false });
