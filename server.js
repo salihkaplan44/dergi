@@ -539,7 +539,7 @@ app.post('/api/magazines', requireAdmin, upload.fields([
 
       // Map pages and replace file_index references with actual URLs
       if (template.pages && Array.isArray(template.pages)) {
-        for (const page of template.pages) {
+        const uploadPromises = template.pages.map(async (page) => {
           if (page.imageIndex !== undefined && page.imageIndex !== null) {
             const index = parseInt(page.imageIndex);
             if (templateImages[index]) {
@@ -548,7 +548,8 @@ app.post('/api/magazines', requireAdmin, upload.fields([
               page.imageUrl = '';
             }
           }
-        }
+        });
+        await Promise.all(uploadPromises);
       }
 
       newMagazine.cover = template.cover;
@@ -566,10 +567,7 @@ app.post('/api/magazines', requireAdmin, upload.fields([
       if (req.files['pages']) {
         const pageFiles = req.files['pages'];
         pageFiles.sort((a, b) => a.originalname.localeCompare(b.originalname, undefined, { numeric: true, sensitivity: 'base' }));
-        for (const file of pageFiles) {
-          const url = await uploadFile(file, 'pages');
-          pageUrls.push(url);
-        }
+        pageUrls = await Promise.all(pageFiles.map(file => uploadFile(file, 'pages')));
       }
       newMagazine.pages = pageUrls; // pages is array of strings (urls)
     }
@@ -670,7 +668,7 @@ app.put('/api/magazines/:id', requireAdmin, upload.fields([
 
       // Map pages
       if (template.pages && Array.isArray(template.pages)) {
-        for (const page of template.pages) {
+        const uploadPromises = template.pages.map(async (page) => {
           if (page.imageIndex !== undefined && page.imageIndex !== null) {
             const idx = parseInt(page.imageIndex);
             if (templateImages[idx]) {
@@ -684,7 +682,8 @@ app.put('/api/magazines/:id', requireAdmin, upload.fields([
               page.imageUrl = oldPage.imageUrl;
             }
           }
-        }
+        });
+        await Promise.all(uploadPromises);
       }
 
       existingMag.cover = template.cover;
@@ -700,12 +699,7 @@ app.put('/api/magazines/:id', requireAdmin, upload.fields([
       if (req.files && req.files['pages']) {
         const pageFiles = req.files['pages'];
         pageFiles.sort((a, b) => a.originalname.localeCompare(b.originalname, undefined, { numeric: true, sensitivity: 'base' }));
-        const newPageUrls = [];
-        for (const file of pageFiles) {
-          const url = await uploadFile(file, 'pages');
-          newPageUrls.push(url);
-        }
-        existingMag.pages = newPageUrls;
+        existingMag.pages = await Promise.all(pageFiles.map(file => uploadFile(file, 'pages')));
       } else {
         // Keep existing pages if no new pages are uploaded
         existingMag.pages = existingMag.pages || [];
