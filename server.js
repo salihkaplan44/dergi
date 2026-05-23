@@ -784,6 +784,12 @@ app.delete('/api/magazines/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// Error handling middleware to catch Multer and other middleware errors as JSON
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: err.message || 'Sunucu tarafında bilinmeyen bir hata oluştu.' });
+});
+
 // Fallback to index.html for UI routing if necessary, or let Express serve public assets.
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
