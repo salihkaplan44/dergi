@@ -283,6 +283,8 @@ function updateActiveThumbnail() {
 
 // Render Pages inside reader view
 function renderReaderPages() {
+  zoomLevel = 100;
+  updateZoom();
   readerPages.innerHTML = '';
   
   let allPages = [];
@@ -599,9 +601,42 @@ function jumpToPage(index) {
 }
 
 // Zoom helpers
+let baseWidth = 0;
+let baseHeight = 0;
+
 function updateZoom() {
-  readerViewport.style.transform = `scale(${zoomLevel / 100})`;
+  const scale = zoomLevel / 100;
   zoomLevelText.textContent = `${zoomLevel}%`;
+  
+  const container = document.querySelector('.reader-container');
+  if (!container) return;
+  
+  if (scale === 1) {
+    readerPages.style.transform = 'none';
+    readerPages.style.transformOrigin = 'center center';
+    readerViewport.style.width = 'auto';
+    readerViewport.style.height = 'auto';
+    container.classList.remove('zoomed');
+    container.scrollLeft = 0;
+    container.scrollTop = 0;
+  } else {
+    // Reset to scale 1 to measure base size accurately
+    readerPages.style.transform = 'none';
+    readerViewport.style.width = 'auto';
+    readerViewport.style.height = 'auto';
+    
+    // Force layout measurement
+    baseWidth = readerPages.offsetWidth;
+    baseHeight = readerPages.offsetHeight;
+    
+    // Apply zoom
+    container.classList.add('zoomed');
+    readerPages.style.transformOrigin = 'top left';
+    readerPages.style.transform = `scale(${scale})`;
+    
+    readerViewport.style.width = `${baseWidth * scale}px`;
+    readerViewport.style.height = `${baseHeight * scale}px`;
+  }
 }
 
 // Close Reader Modal
@@ -660,6 +695,97 @@ document.addEventListener('DOMContentLoaded', () => {
   closeReaderBtn.addEventListener('click', closeReader);
   prevPageBtn.addEventListener('click', prevPage);
   nextPageBtn.addEventListener('click', nextPage);
+
+  // Auto-hide bottom controls in fullscreen mode
+  const controlsEl = document.querySelector('.reader-controls');
+  readerModal.addEventListener('mousemove', (e) => {
+    if (document.fullscreenElement) {
+      const threshold = window.innerHeight - 100; // 100px from the bottom
+      if (e.clientY > threshold) {
+        controlsEl.classList.add('visible');
+      } else {
+        controlsEl.classList.remove('visible');
+      }
+    }
+  });
+
+  // Toggle controls visibility on viewport tap/click in fullscreen (for touch devices)
+  const viewPortArea = document.getElementById('reader-viewport');
+  if (viewPortArea) {
+    viewPortArea.addEventListener('click', (e) => {
+      if (document.fullscreenElement) {
+        // Prevent click from toggling if dragging or clicking buttons
+        if (zoomLevel === 100) {
+          controlsEl.classList.toggle('visible');
+        }
+      }
+    });
+  }
+
+  // Drag-to-Scroll (Panning) logic for reader container
+  const container = document.querySelector('.reader-container');
+  let isDragging = false;
+  let startX, startY;
+  let scrollLeftStart, scrollTopStart;
+
+  if (container) {
+    container.addEventListener('mousedown', (e) => {
+      if (zoomLevel > 100) {
+        isDragging = true;
+        container.classList.add('grabbing');
+        startX = e.pageX - container.offsetLeft;
+        startY = e.pageY - container.offsetTop;
+        scrollLeftStart = container.scrollLeft;
+        scrollTopStart = container.scrollTop;
+      }
+    });
+
+    container.addEventListener('mouseleave', () => {
+      isDragging = false;
+      container.classList.remove('grabbing');
+    });
+
+    container.addEventListener('mouseup', () => {
+      isDragging = false;
+      container.classList.remove('grabbing');
+    });
+
+    container.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const x = e.pageX - container.offsetLeft;
+      const y = e.pageY - container.offsetTop;
+      const walkX = (x - startX) * 1.5;
+      const walkY = (y - startY) * 1.5;
+      container.scrollLeft = scrollLeftStart - walkX;
+      container.scrollTop = scrollTopStart - walkY;
+    });
+
+    // Touch Drag support for mobile/tablets
+    container.addEventListener('touchstart', (e) => {
+      if (zoomLevel > 100 && e.touches.length === 1) {
+        isDragging = true;
+        startX = e.touches[0].pageX - container.offsetLeft;
+        startY = e.touches[0].pageY - container.offsetTop;
+        scrollLeftStart = container.scrollLeft;
+        scrollTopStart = container.scrollTop;
+      }
+    }, { passive: true });
+
+    container.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+
+    container.addEventListener('touchmove', (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      const x = e.touches[0].pageX - container.offsetLeft;
+      const y = e.touches[0].pageY - container.offsetTop;
+      const walkX = (x - startX) * 1.5;
+      const walkY = (y - startY) * 1.5;
+      container.scrollLeft = scrollLeftStart - walkX;
+      container.scrollTop = scrollTopStart - walkY;
+    }, { passive: true });
+  }
 
   zoomInBtn.addEventListener('click', () => {
     if (zoomLevel < 250) {

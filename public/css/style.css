@@ -511,6 +511,48 @@ header.scrolled {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+/* Fullscreen mode autohide controls */
+#reader-modal:fullscreen .reader-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.85); /* Sleek glassmorphic dark theme */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+#reader-modal:fullscreen .reader-controls.visible {
+  transform: translateY(0);
+  opacity: 0.95;
+  pointer-events: auto;
+}
+
+/* Zoomed & Draggable state layouts */
+.reader-container.zoomed {
+  overflow: auto !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  cursor: grab;
+}
+
+.reader-container.grabbing {
+  cursor: grabbing !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.reader-container.zoomed .reader-viewport {
+  margin: auto;
+  transition: none !important; /* Disable transition during zoom scroll to avoid lag */
 }
 
 .controls-toolbar {
