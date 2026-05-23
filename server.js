@@ -10,7 +10,7 @@ const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123'; // Default admin password
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '44.10.Malatya'; // Default admin password
 const CONFIG_FILE = path.join(__dirname, 'data', 'config.json');
 
 // Check if MongoDB and Cloudinary are configured in Environment Variables
@@ -296,7 +296,7 @@ app.use(session({
   cookie: {
     httpOnly: true, // Prevent XSS cookie harvesting
     secure: process.env.NODE_ENV === 'production', // Enable HTTPS-only cookies in production
-    sameSite: 'strict', // CSRF protection
+    sameSite: 'lax', // CSRF protection
     maxAge: 1000 * 60 * 60 * 8 // 8 hours
   }
 }));
