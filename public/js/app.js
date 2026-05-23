@@ -129,11 +129,12 @@ function renderMagazines(magsToRender) {
 
     const card = document.createElement('div');
     card.className = 'magazine-card glass';
+    card.style.cursor = 'pointer';
     card.innerHTML = `
       <div class="card-cover-container">
         ${coverHtml}
         <div class="card-overlay">
-          <button class="btn btn-primary btn-sm read-btn" data-id="${mag.id}" style="width: 100%;">
+          <button class="btn btn-primary btn-sm read-btn" style="width: 100%;">
             <i data-lucide="book-open"></i>
             <span>Sayıyı Oku</span>
           </button>
@@ -145,19 +146,17 @@ function renderMagazines(magsToRender) {
         <p class="card-desc">${escapeHtml(mag.description) || 'Açıklama bulunmuyor.'}</p>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; font-size: 0.85rem; color: var(--text-secondary);">
           <span>${mag.pages.length + 1} Sayfa</span>
-          <button class="btn btn-secondary btn-sm read-btn-link" data-id="${mag.id}" style="padding: 4px 8px; font-size: 0.75rem;">Oku</button>
+          <button class="btn btn-secondary btn-sm read-btn-link" style="padding: 4px 8px; font-size: 0.75rem;">Oku</button>
         </div>
       </div>
     `;
-    magazineGrid.appendChild(card);
-  });
-
-  // Attach event listeners to Oku buttons
-  document.querySelectorAll('.read-btn, .read-btn-link').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const magId = btn.getAttribute('data-id');
-      openReader(magId);
+    
+    // Entire card click handler to open reader
+    card.addEventListener('click', () => {
+      openReader(mag.id);
     });
+
+    magazineGrid.appendChild(card);
   });
 
   initIcons();
@@ -700,11 +699,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const controlsEl = document.querySelector('.reader-controls');
   readerModal.addEventListener('mousemove', (e) => {
     if (document.fullscreenElement) {
-      const threshold = window.innerHeight - 100; // 100px from the bottom
-      if (e.clientY > threshold) {
-        controlsEl.classList.add('visible');
+      const rect = controlsEl.getBoundingClientRect();
+      const controlsHeight = rect.height || 180;
+      const thresholdShow = window.innerHeight - 80; // Show when cursor is near the very bottom
+      const thresholdHide = window.innerHeight - controlsHeight - 50; // Hide when cursor moves above the controls + 50px buffer
+      
+      if (controlsEl.classList.contains('visible')) {
+        if (e.clientY < thresholdHide) {
+          controlsEl.classList.remove('visible');
+        }
       } else {
-        controlsEl.classList.remove('visible');
+        if (e.clientY > thresholdShow) {
+          controlsEl.classList.add('visible');
+        }
       }
     }
   });
@@ -785,6 +792,24 @@ document.addEventListener('DOMContentLoaded', () => {
       container.scrollLeft = scrollLeftStart - walkX;
       container.scrollTop = scrollTopStart - walkY;
     }, { passive: true });
+
+    // Scroll Wheel Zoom Support (Ctrl + Scroll Wheel)
+    container.addEventListener('wheel', (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          if (zoomLevel < 250) {
+            zoomLevel += 25;
+            updateZoom();
+          }
+        } else {
+          if (zoomLevel > 100) {
+            zoomLevel -= 25;
+            updateZoom();
+          }
+        }
+      }
+    }, { passive: false });
   }
 
   zoomInBtn.addEventListener('click', () => {
