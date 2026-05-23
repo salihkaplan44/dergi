@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yönetim Paneli - HAKKIN İZİNDE</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="glass">
+    <a href="/" class="logo-container" style="text-decoration: none;">
+      <div class="logo-icon">H</div>
+      <div class="logo-text">Hakkın İzinde <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.7;">Yönetim</span></div>
+    </a>
+    <nav class="nav-links">
+      <a href="/" class="nav-link">Anasayfa</a>
+      <button id="logout-btn" class="btn btn-secondary btn-sm" style="display: none;">
+        <i data-lucide="log-out"></i>
+        <span>Çıkış Yap</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Container -->
+  <main class="admin-container">
+    
+    <!-- Login Area (hidden if authenticated) -->
+    <div id="login-section" class="auth-card glass">
+      <div style="text-align: center;">
+        <div style="background: var(--accent-gradient); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; box-shadow: var(--shadow-glow);">
+          <i data-lucide="lock" style="width: 28px; height: 28px; color: white;"></i>
+        </div>
+        <h2 style="font-size: 1.5rem;">Yönetici Girişi</h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">Değişiklik yapmak için şifrenizi girin.</p>
+      </div>
+
+      <form id="login-form" style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="form-group">
+          <label for="password">Giriş Şifresi</label>
+          <input type="password" id="password" placeholder="Şifrenizi girin" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          Giriş Yap
+        </button>
+      </form>
+    </div>
+
+    <!-- Dashboard Area (hidden if unauthenticated) -->
+    <div id="dashboard-section" style="display: none;">
+      <div class="dashboard-header">
+        <div>
+          <h2>Yönetim Paneli</h2>
+          <p style="color: var(--text-secondary); margin-top: 4px;">Yeni sayılar ekleyebilir, mevcut sayıları görüntüleyebilir veya silebilirsiniz.</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button id="open-change-password-btn" class="btn btn-secondary">
+            <i data-lucide="key" style="width: 16px; height: 16px;"></i>
+            <span>Şifre Değiştir</span>
+          </button>
+          <button id="open-add-modal" class="btn btn-primary">
+            <i data-lucide="plus"></i>
+            <span>Yeni Sayı Ekle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 40px;">
+        <div class="glass" style="padding: 24px; border-radius: 16px; display: flex; align-items: center; gap: 16px;">
+          <div style="background: rgba(139, 92, 246, 0.1); padding: 12px; border-radius: 12px; color: var(--accent-primary);">
+            <i data-lucide="book-open"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 700;" id="stat-total-magazines">0</div>
+            <div style="color: var(--text-secondary); font-size: 0.85rem;">Toplam Sayı Sayısı</div>
+          </div>
+        </div>
+        <div class="glass" style="padding: 24px; border-radius: 16px; display: flex; align-items: center; gap: 16px;">
+          <div style="background: rgba(217, 70, 239, 0.1); padding: 12px; border-radius: 12px; color: var(--accent-secondary);">
+            <i data-lucide="layers"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 700;" id="stat-total-pages">0</div>
+            <div style="color: var(--text-secondary); font-size: 0.85rem;">Toplam Sayfa Sayısı</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Magazines List Table -->
+      <div class="admin-panel-card glass">
+        <h3 class="admin-panel-title">Mevcut Sayılar</h3>
+        
+        <div id="admin-loading" style="display: flex; justify-content: center; padding: 20px;">
+          <div class="spinner"></div>
+        </div>
+
+        <div id="admin-empty" style="display: none; text-align: center; padding: 40px; color: var(--text-secondary);">
+          <i data-lucide="book-open" style="width: 48px; height: 48px; margin: 0 auto 12px auto; color: var(--text-muted);"></i>
+          <p>Yüklü e-dergi bulunmuyor.</p>
+        </div>
+
+        <table class="admin-table" id="magazines-table" style="display: none;">
+          <thead>
+            <tr>
+              <th>Kapak / Sayı Adı</th>
+              <th>Yayın Tarihi</th>
+              <th>Sayfa Sayısı</th>
+              <th>İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="magazines-table-body">
+            <!-- Magazines will be injected here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Full-Width Publisher Workspace (hidden by default) -->
+  <div id="publish-section" class="publish-workspace glass" style="display: none; margin-top: 20px; border-radius: 24px; padding: 24px; border: 1px solid var(--border-glass); position: relative;">
+    <div class="workspace-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 16px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button type="button" id="cancel-publish-btn" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 6px;">
+          <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+          <span>Geri Dön</span>
+        </button>
+        <h3 style="margin: 0; font-size: 1.3rem; font-family: var(--font-display); font-weight: 700;">Yeni Sayı Yayınlama Bölümü</h3>
+      </div>
+      <button type="button" id="submit-magazine-top-btn" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;">
+        <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+        <span>Sayıyı Yayınla</span>
+      </button>
+    </div>
+
+    <form id="add-magazine-form" style="display: flex; gap: 24px; min-height: 600px; height: calc(100vh - 280px);">
+      <!-- LEFT COLUMN: SIDE NAVIGATION & METADATA -->
+      <div class="publish-left-column" style="width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--border-glass); padding-right: 24px;">
+        <!-- Metadata fields -->
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <h4 style="color: var(--accent-primary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 4px 0;">Sayı Künyesi</h4>
+          <div class="form-group">
+            <label for="mag-title">Sayı Adı / Numarası *</label>
+            <input type="text" id="mag-title" placeholder="Örn: Sayı 1 - Haziran 2026" required style="width: 100%;">
+          </div>
+          <div class="form-group">
+            <label for="mag-desc">Açıklama / Özet</label>
+            <textarea id="mag-desc" rows="2" placeholder="Bu sayı hakkında kısa bilgi..." style="width: 100%; resize: none;"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="mag-date">Yayınlanma Tarihi *</label>
+            <input type="date" id="mag-date" required style="width: 100%;">
+          </div>
+        </div>
+
+        <!-- Vertical Sidebar tabs switcher -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; flex-grow: 1;">
+          <h4 style="color: var(--accent-primary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 4px 0;">Yayın Yöntemi</h4>
+          <button type="button" class="tab-sidebar-btn active" id="tab-classic-btn">
+            <i data-lucide="image" style="width: 16px; height: 16px;"></i>
+            <span>JPG Dergi Yükle</span>
+          </button>
+          <button type="button" class="tab-sidebar-btn" id="tab-template-btn">
+            <i data-lucide="layout" style="width: 16px; height: 16px;"></i>
+            <span>Şablon ile Tasarla</span>
+          </button>
+        </div>
+
+        <!-- Hidden inputs for backing cover state -->
+        <div style="display: none;">
+          <input type="text" id="tpl-cover-subtitle">
+          <select id="tpl-cover-color">
+            <option value="violet">Asil Mor</option>
+            <option value="emerald">Zümrüt Yeşili</option>
+            <option value="crimson">Yakut Kırmızısı</option>
+            <option value="amber">Altın Sarısı</option>
+            <option value="dark">Derin Gece</option>
+          </select>
+          <select id="tpl-cover-textcolor">
+            <option value="#ffffff">Beyaz</option>
+            <option value="#f3f4f6">Açık Gri</option>
+            <option value="#fef08a">Açık Sarı</option>
+          </select>
+          <input type="file" id="tpl-cover-bg-input" accept="image/*">
+          <input type="file" id="tpl-cover-sub1-input" accept="image/*">
+          <input type="file" id="tpl-cover-sub2-input" accept="image/*">
+          <input type="file" id="tpl-cover-sub3-input" accept="image/*">
+          <input type="file" id="tpl-cover-sub4-input" accept="image/*">
+          <input type="file" id="tpl-cover-sub5-input" accept="image/*">
+        </div>
+        <input type="hidden" id="active-tab" value="classic">
+      </div>
+
+      <!-- RIGHT COLUMN: DYNAMIC WORKSPACE PANEL -->
+      <div class="publish-right-column" style="flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; height: 100%;">
+        <!-- TAB 1: Classic JPG Upload -->
+        <div id="classic-upload-panel" style="height: 100%; display: flex; flex-direction: column; gap: 20px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; height: 100%; overflow: hidden;">
+            <!-- Left grid: Cover Upload -->
+            <div style="display: flex; flex-direction: column; gap: 10px; height: 100%;">
+              <label style="font-weight: 600; color: var(--text-primary);">Kapak Resmi * (Önerilen Oran: 3:4)</label>
+              <div class="upload-dropzone" id="cover-dropzone" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
+                <input type="file" id="cover-input" accept="image/*" style="display: none;">
+                <i data-lucide="image" class="upload-icon" style="width: 40px; height: 40px; margin-bottom: 10px; color: var(--accent-primary);"></i>
+                <p class="upload-text" style="font-size: 0.9rem;">Kapak Görseli Seçin veya Sürükleyin</p>
+                <p class="upload-subtext" style="font-size: 0.75rem;">JPG, PNG, WEBP (Maks 10MB)</p>
+              </div>
+              <div id="cover-preview-container" style="display: none; text-align: center; margin-top: 10px;">
+                <img id="cover-preview" src="" alt="Kapak Önizleme" style="max-height: 180px; border-radius: 8px; border: 1px solid var(--border-glass);">
+                <div style="margin-top: 8px;">
+                  <button type="button" id="remove-cover-btn" class="btn btn-danger btn-sm">Resmi Kaldır</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right grid: Pages Upload -->
+            <div style="display: flex; flex-direction: column; gap: 10px; height: 100%; overflow: hidden;">
+              <label style="font-weight: 600; color: var(--text-primary);">Sayı Sayfaları * (Sırasıyla Yükleyin)</label>
+              <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px;">
+                <i data-lucide="info" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i>
+                Dosya adlarını alfabetik sıraya göre düzenleyin (Örn: 01.jpg, 02.jpg).
+              </p>
+              <div class="upload-dropzone" id="pages-dropzone" style="padding: 20px; min-height: 100px;">
+                <input type="file" id="pages-input" accept="image/*" multiple style="display: none;">
+                <i data-lucide="files" class="upload-icon" style="width: 32px; height: 32px; margin-bottom: 6px; color: var(--accent-secondary);"></i>
+                <p class="upload-text" style="font-size: 0.9rem;">Sayı Sayfalarını Seçin veya Sürükleyin</p>
+              </div>
+              
+              <div id="pages-previews-area" style="display: none; flex-grow: 1; flex-direction: column; overflow: hidden; margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span id="pages-count-indicator" style="font-size: 0.85rem; font-weight: 600; color: var(--accent-secondary);">0 Sayfa Seçildi</span>
+                  <button type="button" id="clear-pages-btn" class="btn btn-secondary btn-sm" style="color: var(--danger);">Tümünü Temizle</button>
+                </div>
+                <div class="page-previews-grid" id="pages-previews-grid" style="flex-grow: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; padding: 4px;">
+                  <!-- Selected page thumbnails will be rendered here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: Template Builder -->
+        <div id="template-builder-panel" style="display: none; height: 100%; flex-direction: column;">
+          <div class="visual-editor-container" style="display: flex; gap: 20px; height: 100%; overflow: hidden;">
+            <!-- Left Sub-Pane: Pages list sidebar -->
+            <div class="editor-sidebar glass" style="width: 200px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-glass); border-radius: 16px; padding: 12px; background: rgba(255,255,255,0.01); height: 100%;">
+              <h4 style="color: var(--accent-secondary); display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; font-weight: 700; font-family: var(--font-display);">
+                <span>Sayı Sayfaları</span>
+                <span id="sidebar-page-count" style="font-size: 0.75rem; opacity: 0.7;">1 Sayfa</span>
+              </h4>
+              <!-- Draggable thumbnail list of pages -->
+              <div id="editor-page-list" style="flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+                <!-- Dynamically filled with page cards -->
+              </div>
+              <button type="button" id="add-editor-page-btn" class="btn btn-secondary btn-sm" style="width: 100%; border-color: var(--accent-secondary); color: var(--accent-secondary); display: flex; justify-content: center; align-items: center; gap: 6px;">
+                <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
+                <span>Yeni Sayfa Ekle</span>
+              </button>
+            </div>
+
+            <!-- Right Sub-Pane: Interactive WYSIWYG Workspace -->
+            <div class="editor-workspace" style="flex-grow: 1; display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden;">
+              <!-- Active Page Toolbar -->
+              <div class="workspace-toolbar glass" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; border: 1px solid var(--border-glass); border-radius: 12px; background: rgba(255,255,255,0.02); flex-shrink: 0;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span id="active-page-title-label" style="font-weight: 600; font-size: 0.85rem; color: var(--accent-primary); font-family: var(--font-display);">Kapak Tasarımı</span>
+                  <select id="active-page-layout-select" style="padding: 4px 8px; border-radius: 8px; background: var(--bg-secondary); border: 1px solid var(--border-glass); color: var(--text-primary); font-family: var(--font-body); font-size: 0.75rem; display: none;">
+                    <option value="text-only">Metin Ağırlıklı (Köşe Yazısı)</option>
+                    <option value="image-text">Görsel Solda, Metin Sağda</option>
+                    <option value="text-image">Metin Solda, Görsel Sağda</option>
+                    <option value="image-over-text">Görsel Üstte, Metin Altta</option>
+                    <option value="full-image">Sadece Görsel (Tam Ekran)</option>
+                  </select>
+                </div>
+                <div id="active-page-actions" style="display: flex; gap: 8px; align-items: center;">
+                  <!-- Layout-specific toolbar controls -->
+                </div>
+              </div>
+
+              <!-- Active Page Interactive Magazine Preview Canvas -->
+              <div class="workspace-canvas" style="flex-grow: 1; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.15); border-radius: 16px; padding: 20px; border: 1px dashed var(--border-glass); position: relative; overflow-y: auto; height: 100%;">
+                <div id="active-page-canvas-wrapper" style="transform: scale(0.95); transform-origin: center center;">
+                  <!-- Rendered active page HTML with contenteditable elements -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- Uploading state screen overlay -->
+    <div id="upload-overlay" style="display: none; position: absolute; inset: 0; background: var(--bg-glass); backdrop-filter: blur(8px); flex-direction: column; align-items: center; justify-content: center; gap: 20px; z-index: 100; border-radius: 24px;">
+      <div class="spinner"></div>
+      <div style="text-align: center;">
+        <h4 id="upload-status-title">Sayı Yükleniyor...</h4>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;" id="upload-status-sub">Lütfen tarayıcınızı kapatmayın.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Delete Confirmation Modal -->
+  <div id="delete-confirm-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="glass" style="max-width: 400px; width: 90%; padding: 28px; border-radius: 20px; box-shadow: var(--shadow-lg); text-align: center; border: 1px solid var(--border-glass);">
+      <div style="background: rgba(190, 18, 60, 0.1); width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+        <i data-lucide="alert-triangle" style="width: 28px; height: 28px; color: #be123c;"></i>
+      </div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; font-family: var(--font-display);">Sayıyı Sil</h3>
+      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 24px; line-height: 1.5;" id="delete-confirm-text">Bu sayıyı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button type="button" id="delete-confirm-cancel-btn" class="btn btn-secondary" style="flex: 1;">İptal</button>
+        <button type="button" id="delete-confirm-ok-btn" class="btn btn-danger" style="flex: 1; background: #be123c;">Sil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="change-password-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="glass" style="max-width: 400px; width: 90%; padding: 28px; border-radius: 20px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-glass);">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="background: rgba(163, 127, 30, 0.1); width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
+          <i data-lucide="key" style="width: 28px; height: 28px; color: var(--accent-primary);"></i>
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; font-family: var(--font-display);">Şifreyi Değiştir</h3>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">Güvenliğiniz için şifrenizi güncelleyin.</p>
+      </div>
+
+      <form id="change-password-form" style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="current-password" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;">Mevcut Şifre</label>
+          <input type="password" id="current-password" required placeholder="••••••••" style="width: 100%; padding: 10px 14px; background: var(--bg-secondary); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-primary);">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="new-password" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;">Yeni Şifre</label>
+          <input type="password" id="new-password" required placeholder="••••••••" style="width: 100%; padding: 10px 14px; background: var(--bg-secondary); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-primary);">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="confirm-new-password" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;">Yeni Şifre (Tekrar)</label>
+          <input type="password" id="confirm-new-password" required placeholder="••••••••" style="width: 100%; padding: 10px 14px; background: var(--bg-secondary); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-primary);">
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 8px;">
+          <button type="button" id="change-password-cancel-btn" class="btn btn-secondary" style="flex: 1;">İptal</button>
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Güncelle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Client Logic -->
+  <script src="/js/admin.js"></script>
+</body>
+</html>

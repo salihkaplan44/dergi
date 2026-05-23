@@ -1,0 +1,6 @@
+node_modules/
+uploads/
+data/config.json
+data/magazines.json
+.env
+.DS_Store

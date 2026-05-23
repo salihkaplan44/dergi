@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HAKKIN İZİNDE - Dijital Dergi Arşivi</title>
+  <meta name="description" content="Hakkın İzinde dergisinin tüm sayılarını dijital ortamda en yüksek kalitede okuyun.">
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Lucide Icons for clean SVG icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="glass">
+    <a href="/" class="logo-container" style="text-decoration: none;">
+      <div class="logo-icon">H</div>
+      <div class="logo-text">Hakkın İzinde</div>
+    </a>
+    <nav class="nav-links">
+      <a href="/" class="nav-link active">Arşiv</a>
+      <a href="/admin.html" id="admin-nav-btn" class="btn btn-secondary btn-sm">
+        <i data-lucide="lock"></i>
+        <span>Giriş Yap</span>
+      </a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <h1><span>HAKKIN İZİNDE</span> e-Dergi Arşivi</h1>
+    <p>Yayınlanan tüm sayılarımıza buradan ulaşabilir, tarayıcınız üzerinden yüksek kalitede ve kesintisiz okuma deneyimi yaşayabilirsiniz.</p>
+  </section>
+
+  <!-- Magazines Section -->
+  <section class="magazines-section">
+    <div class="section-header">
+      <h2>Yayınlanmış Sayılar</h2>
+      <div class="search-bar">
+        <i data-lucide="search"></i>
+        <input type="text" id="search-input" placeholder="Sayı ara...">
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-container" style="display: flex; justify-content: center; padding: 40px;">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <i data-lucide="book-open" style="width: 64px; height: 64px; margin: 0 auto 16px auto;"></i>
+      <h3>Henüz dergi eklenmemiş</h3>
+      <p style="margin-top: 8px;">Daha sonra tekrar kontrol edin veya admin girişi yaparak ilk dergiyi ekleyin.</p>
+    </div>
+
+    <!-- Magazine Grid -->
+    <div id="magazine-grid" class="magazine-grid"></div>
+  </section>
+
+  <!-- E-Magazine Reader Modal -->
+  <div id="reader-modal" class="reader-modal">
+    <!-- Reader Header -->
+    <div class="reader-header">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button id="close-reader" class="modal-close" title="Kapat">
+          <i data-lucide="arrow-left"></i>
+        </button>
+        <span id="reader-mag-title" class="reader-title">Dergi Başlığı</span>
+      </div>
+      <div class="reader-actions">
+        <button id="toggle-view-mode" class="btn btn-secondary btn-sm" title="Tekli/Çift Sayfa Görünümü">
+          <i data-lucide="book-open"></i>
+          <span class="btn-text">Çift Sayfa</span>
+        </button>
+        <button id="toggle-fullscreen" class="btn btn-secondary btn-sm" title="Tam Ekran">
+          <i data-lucide="maximize-2"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Reader Body -->
+    <div class="reader-container">
+      <button id="prev-page-btn" class="reader-nav reader-nav-prev" title="Önceki Sayfa">
+        <i data-lucide="chevron-left" style="width: 32px; height: 32px;"></i>
+      </button>
+
+      <div class="reader-viewport" id="reader-viewport">
+        <div class="reader-pages" id="reader-pages">
+          <!-- Page images will be injected here -->
+        </div>
+      </div>
+
+      <button id="next-page-btn" class="reader-nav reader-nav-next" title="Sonraki Sayfa">
+        <i data-lucide="chevron-right" style="width: 32px; height: 32px;"></i>
+      </button>
+    </div>
+
+    <!-- Reader Footer / Controls -->
+    <div class="reader-controls">
+      <div class="controls-toolbar">
+        <span id="page-indicator" class="page-indicator">Sayfa: 0 / 0</span>
+        
+        <div class="zoom-controls">
+          <button id="zoom-out" class="btn btn-secondary btn-sm" title="Uzaklaştır">
+            <i data-lucide="minus"></i>
+          </button>
+          <span style="min-width: 50px; text-align: center; font-size: 0.9rem;" id="zoom-level">100%</span>
+          <button id="zoom-in" class="btn btn-secondary btn-sm" title="Yakınlaştır">
+            <i data-lucide="plus"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Thumbnail Slider -->
+      <div class="thumbnails-strip" id="thumbnails-strip">
+        <!-- Thumbnail images will be injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Client Logic -->
+  <script src="/js/app.js"></script>
+</body>
+</html>
