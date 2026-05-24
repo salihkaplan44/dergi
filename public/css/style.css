@@ -554,7 +554,13 @@ header.scrolled {
   margin: auto;
   max-width: none !important;
   max-height: none !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
   transition: none !important; /* Disable transition during zoom scroll to avoid lag */
+}
+
+.reader-container.zoomed .reader-pages {
+  max-width: none !important;
 }
 
 .controls-toolbar {
