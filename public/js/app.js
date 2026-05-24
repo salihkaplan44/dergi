@@ -63,6 +63,7 @@ async function checkAuthStatus() {
     const res = await fetch('/api/auth-status');
     const data = await res.json();
     if (data.isAdmin) {
+      adminNavBtn.style.display = 'inline-flex';
       adminNavBtn.href = '/admin.html';
       adminNavBtn.querySelector('span').textContent = 'Yönetim Paneli';
       adminNavBtn.querySelector('i').setAttribute('data-lucide', 'sliders');
