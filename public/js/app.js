@@ -304,7 +304,7 @@ function renderReaderPages() {
 
   const total = allPages.length;
 
-  if (viewMode === 'double' && window.innerWidth >= 900) {
+  if (viewMode === 'double') {
     if (currentPage === 0) {
       // Cover page (Page 1) is rendered single page centered
       const element = createPageElement(allPages[0], 0, total);
@@ -540,7 +540,7 @@ function createTemplatePageHtml(page, pageNum, totalPages) {
 // Check if currently viewing the last page
 function isLastPage() {
   const total = 1 + activeMagazine.pages.length;
-  if (viewMode === 'double' && window.innerWidth >= 900) {
+  if (viewMode === 'double') {
     if (currentPage === 0) {
       return total <= 1;
     }
@@ -554,7 +554,7 @@ function nextPage() {
   if (isLastPage()) return;
 
   const total = 1 + activeMagazine.pages.length;
-  if (viewMode === 'double' && window.innerWidth >= 900) {
+  if (viewMode === 'double') {
     if (currentPage === 0) {
       currentPage = 1;
     } else {
@@ -570,7 +570,7 @@ function nextPage() {
 function prevPage() {
   if (currentPage === 0) return;
 
-  if (viewMode === 'double' && window.innerWidth >= 900) {
+  if (viewMode === 'double') {
     if (currentPage === 1) {
       currentPage = 0;
     } else {
@@ -587,7 +587,7 @@ function jumpToPage(index) {
   const total = 1 + activeMagazine.pages.length;
   if (index < 0 || index >= total) return;
 
-  if (viewMode === 'double' && window.innerWidth >= 900) {
+  if (viewMode === 'double') {
     if (index === 0) {
       currentPage = 0;
     } else {

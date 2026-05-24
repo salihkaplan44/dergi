@@ -565,7 +565,18 @@ app.post('/api/magazines', requireAdmin, upload.fields([
       newMagazine.coverUrl = await uploadFile(coverFile, 'covers');
 
       let pageUrls = [];
-      if (req.files['pages']) {
+      if (req.body.classicPagesLayout) {
+        const layout = JSON.parse(req.body.classicPagesLayout);
+        const pageFiles = req.files && req.files['pages'] ? req.files['pages'] : [];
+        const uploadedUrls = await Promise.all(pageFiles.map(file => uploadFile(file, 'pages')));
+        pageUrls = layout.map(item => {
+          if (item.type === 'existing') {
+            return item.url;
+          } else {
+            return uploadedUrls[item.fileIndex];
+          }
+        });
+      } else if (req.files && req.files['pages']) {
         const pageFiles = req.files['pages'];
         pageFiles.sort((a, b) => a.originalname.localeCompare(b.originalname, undefined, { numeric: true, sensitivity: 'base' }));
         pageUrls = await Promise.all(pageFiles.map(file => uploadFile(file, 'pages')));
@@ -697,7 +708,19 @@ app.put('/api/magazines/:id', requireAdmin, upload.fields([
         existingMag.coverUrl = await uploadFile(coverFile, 'covers');
       }
 
-      if (req.files && req.files['pages']) {
+      if (req.body.classicPagesLayout) {
+        const layout = JSON.parse(req.body.classicPagesLayout);
+        const pageFiles = req.files && req.files['pages'] ? req.files['pages'] : [];
+        const uploadedUrls = await Promise.all(pageFiles.map(file => uploadFile(file, 'pages')));
+        
+        existingMag.pages = layout.map(item => {
+          if (item.type === 'existing') {
+            return item.url;
+          } else {
+            return uploadedUrls[item.fileIndex];
+          }
+        });
+      } else if (req.files && req.files['pages']) {
         const pageFiles = req.files['pages'];
         pageFiles.sort((a, b) => a.originalname.localeCompare(b.originalname, undefined, { numeric: true, sensitivity: 'base' }));
         existingMag.pages = await Promise.all(pageFiles.map(file => uploadFile(file, 'pages')));

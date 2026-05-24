@@ -1,6 +1,7 @@
 // State Management
 let selectedCoverFile = null;
 let selectedPageFiles = [];
+let classicPages = []; // Holds {type: 'existing'|'new', url?: string, file?: File, previewUrl?: string}
 
 // Template State Management
 let templatePages = [];
@@ -438,20 +439,11 @@ async function editMagazine(id) {
 
       // Show existing page previews in classic mode
       if (mag.pages && Array.isArray(mag.pages)) {
-        pagesCountIndicator.textContent = `${mag.pages.length} sayfa yüklü`;
-        pagesPreviewsArea.style.display = 'block';
-        pagesDropzone.style.display = 'block'; // Allow adding more
-        
-        mag.pages.forEach((pageUrl, idx) => {
-          const previewDiv = document.createElement('div');
-          previewDiv.className = 'page-preview-item';
-          previewDiv.innerHTML = `
-            <img class="page-preview-img" src="${pageUrl}" alt="Sayfa ${idx + 1}">
-            <span class="page-preview-num">${idx + 1}</span>
-            <div style="font-size:0.65rem; color:var(--text-secondary); text-align:center; margin-top:2px;">Yüklü Dosya</div>
-          `;
-          pagesPreviewsGrid.appendChild(previewDiv);
-        });
+        classicPages = mag.pages.map(url => ({
+          type: 'existing',
+          url: url
+        }));
+        renderPagePreviews();
       }
     }
 
@@ -560,6 +552,12 @@ function resetForm() {
   
   // Reset pages previews
   selectedPageFiles = [];
+  classicPages.forEach(page => {
+    if (page.type === 'new' && page.previewUrl) {
+      URL.revokeObjectURL(page.previewUrl);
+    }
+  });
+  classicPages = [];
   pagesPreviewsGrid.innerHTML = '';
   pagesPreviewsArea.style.display = 'none';
   pagesDropzone.style.display = 'block';
@@ -659,58 +657,112 @@ function handlePagesFiles(files) {
 
   if (newFiles.length === 0) return;
 
-  selectedPageFiles = [...selectedPageFiles, ...newFiles];
+  // Sort newly added files alphabetically by name
+  newFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
-  // Alphabetically sort files by their original filename to preserve reading order
-  selectedPageFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+  // Append new files to classicPages list
+  newFiles.forEach(file => {
+    classicPages.push({
+      type: 'new',
+      file: file,
+      previewUrl: URL.createObjectURL(file)
+    });
+  });
 
   renderPagePreviews();
 }
 
+let draggedClassicIndex = null;
+
 function renderPagePreviews() {
   pagesPreviewsGrid.innerHTML = '';
 
-  if (selectedPageFiles.length === 0) {
+  if (classicPages.length === 0) {
     pagesPreviewsArea.style.display = 'none';
     pagesDropzone.style.display = 'block';
+    pagesCountIndicator.textContent = 'Henüz sayfa eklenmedi';
     return;
   }
 
-  pagesCountIndicator.textContent = `${selectedPageFiles.length} Sayfa Seçildi`;
+  pagesCountIndicator.textContent = `${classicPages.length} Sayfa Yüklü/Seçildi`;
   pagesPreviewsArea.style.display = 'block';
 
-  selectedPageFiles.forEach((file, index) => {
+  classicPages.forEach((page, index) => {
     const item = document.createElement('div');
     item.className = 'page-preview-item';
-    
-    // Read and preview image
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      item.innerHTML = `
-        <img class="page-preview-img" src="${e.target.result}" alt="Önizleme">
-        <span class="page-preview-num">${index + 1}</span>
-        <button type="button" class="page-preview-remove" data-index="${index}">&times;</button>
-      `;
+    item.setAttribute('draggable', 'true');
+    item.style.cursor = 'grab';
 
-      // Attach delete event
-      item.querySelector('.page-preview-remove').addEventListener('click', (e) => {
-        e.stopPropagation();
-        removePage(index);
-      });
-    };
-    reader.readAsDataURL(file);
+    const imgSrc = page.type === 'existing' ? page.url : page.previewUrl;
+    const labelText = page.type === 'existing' ? 'Yüklü Görsel' : 'Yeni Dosya';
+    const labelColor = page.type === 'existing' ? 'var(--text-secondary)' : 'var(--accent-secondary)';
+
+    item.innerHTML = `
+      <img class="page-preview-img" src="${imgSrc}" alt="Önizleme">
+      <span class="page-preview-num">${index + 1}</span>
+      <button type="button" class="page-preview-remove" data-index="${index}">&times;</button>
+      <div style="font-size:0.65rem; color:${labelColor}; text-align:center; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${labelText}</div>
+    `;
+
+    // Attach delete event
+    item.querySelector('.page-preview-remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      removePage(index);
+    });
+
+    // HTML5 Drag and drop reordering
+    item.addEventListener('dragstart', (e) => {
+      draggedClassicIndex = index;
+      e.dataTransfer.effectAllowed = 'move';
+      item.style.opacity = '0.5';
+      item.style.cursor = 'grabbing';
+    });
+
+    item.addEventListener('dragend', () => {
+      item.style.opacity = '1';
+      item.style.cursor = 'grab';
+      draggedClassicIndex = null;
+    });
+
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      item.style.border = '2px dashed var(--accent-primary)';
+    });
+
+    item.addEventListener('dragleave', () => {
+      item.style.border = 'none';
+    });
+
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      item.style.border = 'none';
+      if (draggedClassicIndex !== null && draggedClassicIndex !== index) {
+        const movedPage = classicPages.splice(draggedClassicIndex, 1)[0];
+        classicPages.splice(index, 0, movedPage);
+        renderPagePreviews();
+      }
+    });
 
     pagesPreviewsGrid.appendChild(item);
   });
 }
 
 function removePage(index) {
-  selectedPageFiles.splice(index, 1);
+  const page = classicPages[index];
+  if (page && page.type === 'new' && page.previewUrl) {
+    URL.revokeObjectURL(page.previewUrl);
+  }
+  classicPages.splice(index, 1);
   renderPagePreviews();
 }
 
 clearPagesBtn.addEventListener('click', () => {
-  selectedPageFiles = [];
+  classicPages.forEach(page => {
+    if (page.type === 'new' && page.previewUrl) {
+      URL.revokeObjectURL(page.previewUrl);
+    }
+  });
+  classicPages = [];
   renderPagePreviews();
   pagesInput.value = '';
 });
@@ -1406,8 +1458,8 @@ addMagazineForm.addEventListener('submit', async (e) => {
       return;
     }
 
-    // Only require pages if not editing
-    if (!editingMagazineId && selectedPageFiles.length === 0) {
+    // Only require pages if not editing and classicPages is empty
+    if (classicPages.length === 0) {
       showToast('Lütfen en az bir sayı sayfası yükleyin.', 'error');
       return;
     }
@@ -1417,11 +1469,19 @@ addMagazineForm.addEventListener('submit', async (e) => {
     }
     formData.append('isTemplate', 'false');
     
-    if (selectedPageFiles.length > 0) {
-      selectedPageFiles.forEach(file => {
-        formData.append('pages', file);
-      });
-    }
+    // Build classicPagesLayout metadata and append new files
+    const classicPagesLayout = [];
+    let newFileIndex = 0;
+    classicPages.forEach(p => {
+      if (p.type === 'existing') {
+        classicPagesLayout.push({ type: 'existing', url: p.url });
+      } else {
+        classicPagesLayout.push({ type: 'new', fileIndex: newFileIndex });
+        formData.append('pages', p.file);
+        newFileIndex++;
+      }
+    });
+    formData.append('classicPagesLayout', JSON.stringify(classicPagesLayout));
   } else {
     // Template builder mode
     if (templatePages.length === 0) {
