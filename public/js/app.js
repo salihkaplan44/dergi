@@ -287,6 +287,12 @@ function renderReaderPages() {
   updateZoom();
   readerPages.innerHTML = '';
   
+  if (viewMode === 'double') {
+    readerPages.classList.add('view-mode-double');
+  } else {
+    readerPages.classList.remove('view-mode-double');
+  }
+  
   let allPages = [];
   if (activeMagazine.isTemplate) {
     const coverTpl = {

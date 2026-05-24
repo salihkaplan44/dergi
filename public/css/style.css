@@ -1683,3 +1683,125 @@ header.scrolled {
   gap: 8px !important;
 }
 
+/* Mobile Double Page View and Admin Mobile Scroll Fix */
+@media (max-width: 768px) {
+  /* 1. Shrink and fit pages in double page view on mobile */
+  .reader-pages.view-mode-double .reader-img,
+  .reader-pages.view-mode-double .template-page,
+  .reader-pages.view-mode-double .cover-template-custom {
+    width: 44vw !important;
+    height: 58.67vw !important; /* Aspect ratio 3:4 */
+    padding: 10px !important;
+  }
+  
+  .reader-pages.view-mode-double .tpl-page-header,
+  .reader-pages.view-mode-double .tpl-page-footer {
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    font-size: 0.5rem !important;
+  }
+  
+  .reader-pages.view-mode-double .tpl-title {
+    font-size: 0.8rem !important;
+    margin-bottom: 2px !important;
+  }
+  
+  .reader-pages.view-mode-double .tpl-subtitle {
+    font-size: 0.5rem !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .reader-pages.view-mode-double .tpl-paragraph {
+    font-size: 0.55rem !important;
+    margin-bottom: 4px !important;
+    -webkit-line-clamp: 5 !important;
+  }
+
+  .reader-pages.view-mode-double .tpl-layout-image-text,
+  .reader-pages.view-mode-double .tpl-layout-text-image {
+    gap: 8px !important;
+  }
+  
+  .reader-pages.view-mode-double .tpl-img-container {
+    min-height: 50px !important;
+    max-height: 100px !important;
+  }
+
+  /* 2. Admin Workspace Mobile Scrolling Fix */
+  #add-magazine-form {
+    height: auto !important;
+    min-height: auto !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+  
+  .publish-left-column {
+    width: 100% !important;
+    border-right: none !important;
+    padding-right: 0 !important;
+    border-bottom: 1px solid var(--border-glass) !important;
+    padding-bottom: 20px !important;
+  }
+  
+  .publish-right-column {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  #classic-upload-panel {
+    height: auto !important;
+  }
+  
+  #classic-upload-panel > div {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    overflow: visible !important;
+    gap: 20px !important;
+  }
+  
+  #classic-upload-panel > div > div {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  #pages-previews-area {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  #pages-previews-grid {
+    height: auto !important;
+    overflow: visible !important;
+    max-height: 400px !important;
+    overflow-y: auto !important;
+  }
+  
+  .visual-editor-container {
+    flex-direction: column !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  .editor-sidebar {
+    width: 100% !important;
+    height: 300px !important;
+  }
+  
+  .editor-workspace {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  .workspace-canvas {
+    height: auto !important;
+    min-height: 400px !important;
+    overflow: visible !important;
+  }
+  
+  #active-page-canvas-wrapper {
+    transform: scale(0.7) !important;
+  }
+}
+
