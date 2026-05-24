@@ -636,6 +636,10 @@ function updateZoom() {
     
     readerViewport.style.width = `${baseWidth * scale}px`;
     readerViewport.style.height = `${baseHeight * scale}px`;
+    
+    // Reset scroll to top-left so reading starts from the beginning of the page
+    container.scrollLeft = 0;
+    container.scrollTop = 0;
   }
 }
 

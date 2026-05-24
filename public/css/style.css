@@ -552,6 +552,8 @@ header.scrolled {
 
 .reader-container.zoomed .reader-viewport {
   margin: auto;
+  max-width: none !important;
+  max-height: none !important;
   transition: none !important; /* Disable transition during zoom scroll to avoid lag */
 }
 
